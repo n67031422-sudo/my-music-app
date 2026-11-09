@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedBlack Music</title>
+    <script src="https://telegram.org"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #111111;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #ff0000;
+        }
+        .header h1 {
+            color: #ff0000;
+            margin: 0;
+            font-size: 20px;
+        }
+        .search-bar {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: #222;
+            color: #fff;
+        }
+        .search-bar button {
+            background-color: #ff0000;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: #111;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid #222;
+        }
+        .tab {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            text-align: center;
+        }
+        .tab.active {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .content {
+            padding: 15px;
+            padding-bottom: 70px;
+        }
+        .track-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 10px;
+            border-bottom: 1px solid #222;
+        }
+        .track-info {
+            flex: 1;
+            padding-right: 10px;
+        }
+        .track-info h4 { margin: 0; color: #fff; font-size: 15px; }
+        .track-info p { margin: 5px 0 0 0; color: #888; font-size: 12px; }
+        .play-btn {
+            color: #ff0000;
+            font-size: 22px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>RedBlack Music</h1>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Введите трек или автора...">
+        <button onclick="searchMusic()">Поиск</button>
+    </div>
+
+    <div class="content">
+        <h3>Главная</h3>
+        <p style="color: #888;">Введите поисковый запрос выше, чтобы найти музыку.</p>
+    </div>
+
+    <div class="tabs">
+        <a href="#" class="tab active"><div>🏠</div>Глава</a>
+        <a href="#" class="tab"><div>🎵</div>Моя музыка</a>
+        <a href="#" class="tab"><div>📥</div>Скачанное</a>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let currentAudio = null;
+
+        function searchMusic() {
+            let query = document.getElementById('searchInput').value;
+            if(!query) return;
+            
+            let contentDiv = document.querySelector('.content');
+            contentDiv.innerHTML = '<h3>Ищем треки... Подождите...</h3>';
+
+            let serverUrl = "https://onrender.com"; 
+
+            fetch(`${serverUrl}/search?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    contentDiv.innerHTML = `<h3>Результаты: ${query}</h3>`;
+                    if (data.error || !data.tracks || data.tracks.length === 0) {
+                        contentDiv.innerHTML += '<p style="color: #888;">Ничего не найдено. Попробуйте другой запрос.</p>';
+                        return;
+                    }
+                    data.tracks.forEach((track, index) => {
+                        let trackId = 'track_' + index;
+                        contentDiv.innerHTML += `
+                            <div class="track-item">
+                                <div class="track-info">
+                                    <h4>${track.title}</h4>
+                                    <p>${track.author}</p>
+                                </div>
+                                <button class="play-btn" id="btn_${trackId}" onclick="togglePlay('${trackId}', '${track.url}')">▶</button>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(err => {
+                    contentDiv.innerHTML = '<h3>Ошибка соединения с сервером музыки</h3>';
+                    console.error(err);
+                });
+        }
+
+        function togglePlay(id, url) {
+            let btn = document.getElementById('btn_' + id);
+            
+            if (currentAudio && currentAudio.src === url) {
+                if (currentAudio.paused) {
+                    currentAudio.play();
+                    btn.innerText = '⏸';
+                } else {
+                    currentAudio.pause();
+                    btn.innerText = '▶';
+                }
+            } else {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    // Сбрасываем все кнопки обратно на ▶
+                    document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
+                }
+                currentAudio = new Audio(url);
+                currentAudio.play();
+                btn.innerText = '⏸';
+                
+                currentAudio.onended = () => {
+                    btn.innerText = '▶';
+                };
+            }
+        }
+    </script>
+</body>
+</html>
