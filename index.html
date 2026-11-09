@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedBlack Music</title>
+    <script src="https://telegram.org"></script>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #111111;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #ff0000;
+        }
+        .header h1 {
+            color: #ff0000;
+            margin: 0;
+            font-size: 20px;
+        }
+        .search-bar {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background-color: #222;
+            color: #fff;
+        }
+        .search-bar button {
+            background-color: #ff0000;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: #111;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid #222;
+        }
+        .tab {
+            color: #888;
+            text-decoration: none;
+            font-size: 12px;
+            text-align: center;
+        }
+        .tab.active {
+            color: #ff0000;
+            font-weight: bold;
+        }
+        .content {
+            padding: 15px;
+            padding-bottom: 70px;
+        }
+        .track-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #111;
+        }
+        .track-info h4 { margin: 0; color: #fff; }
+        .track-info p { margin: 5px 0 0 0; color: #888; font-size: 13px; }
+        .play-btn {
+            color: #ff0000;
+            font-size: 20px;
+            background: none;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>RedBlack Music</h1>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Трек или автор...">
+        <button onclick="searchMusic()">Поиск</button>
+    </div>
+
+    <div class="content">
+        <h3>Главная</h3>
+        <!-- Пример трека -->
+        <div class="track-item">
+            <div class="track-info">
+                <h4>Название песни</h4>
+                <p>Имя исполнителя</p>
+            </div>
+            <button class="play-btn">▶</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <a href="#" class="tab active"><div>🏠</div>Глава</a>
+        <a href="#" class="tab"><div>🎵</div>Моя музыка</a>
+        <a href="#" class="tab"><div>📥</div>Скачанное</a>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран телефона
+
+        function searchMusic() {
+            let query = document.getElementById('searchInput').value;
+            if(!query) return;
+            alert('Ищем: ' + query);
+            // Здесь будет логика запроса к серверу
+        }
+    </script>
+</body>
+</html>
