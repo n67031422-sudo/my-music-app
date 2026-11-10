@@ -119,51 +119,58 @@
         tg.expand();
 
         let currentAudio = null;
-        
-        // Используем открытый клиентский ID для легального поиска музыки в Jamendo API
-        const clientId = "54992de9"; 
 
         function searchMusic() {
             let query = document.getElementById('searchInput').value;
             if(!query) return;
             
             let contentDiv = document.querySelector('.content');
-            contentDiv.innerHTML = '<h3>Ищем треки напрямую... Подождите...</h3>';
+            contentDiv.innerHTML = '<h3>Ищем в архиве... Подождите...</h3>';
 
-            // Делаем прямой запрос к открытой музыкальной базе без участия серверов
-            fetch(`https://jamendo.com{clientId}&format=json&limit=10&search=${encodeURIComponent(query)}`)
+            // Ищем mp3 файлы в открытом глобальном Архиве Интернета
+            let url = `https://archive.org{encodeURIComponent(query)}+AND+mediatype:audio&fl[]=identifier,title,creator&output=json&rows=10`;
+
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     contentDiv.innerHTML = `<h3>Результаты: ${query}</h3>`;
-                    if (!data.results || data.results.length === 0) {
+                    let docs = data.response.docs;
+                    if (!docs || docs.length === 0) {
                         contentDiv.innerHTML += '<p style="color: #888;">Ничего не найдено. Попробуйте другой запрос.</p>';
                         return;
                     }
-                    data.results.forEach((track, index) => {
+                    docs.forEach((track, index) => {
                         let trackId = 'track_' + index;
+                        // Генерируем прямую публичную ссылку на аудиопоток
+                        let streamUrl = `https://archive.org{track.identifier}`;
+                        let title = track.title || "Музыкальный трек";
+                        let author = track.creator || "Неизвестный исполнитель";
+                        
                         contentDiv.innerHTML += `
                             <div class="track-item">
                                 <div class="track-info">
-                                    <h4>${track.name}</h4>
-                                    <p>${track.artist_name}</p>
+                                    <h4>${title}</h4>
+                                    <p>${author}</p>
                                 </div>
-                                <button class="play-btn" id="btn_${trackId}" onclick="togglePlay('${trackId}', '${track.audio}')">▶</button>
+                                <button class="play-btn" id="btn_${trackId}" onclick="togglePlay('${trackId}', '${streamUrl}')">▶</button>
                             </div>
                         `;
                     });
                 })
                 .catch(err => {
-                    contentDiv.innerHTML = '<h3>Ошибка поиска музыки</h3>';
+                    contentDiv.innerHTML = '<h3>Ошибка глобального поиска</h3>';
                     console.error(err);
                 });
         }
 
-        function togglePlay(id, url) {
+        function togglePlay(id, baseUrl) {
             let btn = document.getElementById('btn_' + id);
             
-            if (currentAudio && currentAudio.src === url) {
+            // Для Архива Интернета нам нужно запустить первый попавшийся mp3 из раздачи
+            // Чтобы не усложнять, если трек уже выбран, управляем паузой
+            if (currentAudio && currentAudio.src.startsWith(baseUrl)) {
                 if (currentAudio.paused) {
-                    currentAudio.play();
+                    currentAudio.play().catch(e => alert("Не удалось включить поток: " + e));
                     btn.innerText = '⏸';
                 } else {
                     currentAudio.pause();
@@ -174,13 +181,12 @@
                     currentAudio.pause();
                     document.querySelectorAll('.play-btn').forEach(b => b.innerText = '▶');
                 }
-                currentAudio = new Audio(url);
-                currentAudio.play();
-                btn.innerText = '⏸';
                 
-                currentAudio.onended = () => {
-                    btn.innerText = '▶';
-                };
+                // Пробуем запустить поток напрямую через архивный плеер
+                contentDiv = document.querySelector('.content');
+                let trackWindow = window.open(`${baseUrl}`, '_blank');
+                btn.innerText = '🔊';
+                alert("Открываем плеер архива с треком!");
             }
         }
     </script>
